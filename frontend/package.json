@@ -23,6 +23,7 @@
     "postcss": "^8.5.30",
     "react": "19.3.0",
     "react-dom": "19.3.0",
+    "recharts": "^3.10.1",
     "shadcn": "^4.22.1",
     "sonner": "^2.0.8",
     "tailwind-merge": "^3.7.0",
