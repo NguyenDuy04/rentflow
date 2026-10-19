@@ -1,0 +1,11 @@
+fastapi==0.141.1
+uvicorn[standard]==0.52.4
+motor==3.7.1
+pydantic==2.13.5
+pydantic-settings==2.15.0
+pydantic[email]
+PyJWT==2.7.0
+bcrypt==5.0.0
+python-dotenv==1.2.2
+python-multipart==0.0.32
+fpdf2==2.8.8
