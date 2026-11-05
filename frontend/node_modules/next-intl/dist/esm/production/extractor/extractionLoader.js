@@ -1,1 +1,0 @@
-import t from"./extractor/MessageExtractor.js";let e;function o(o){const r=this.async(),s=this.rootContext,a="development"===process.env["NODE_ENV".trim()];e||(e=new t({isDevelopment:a,projectRoot:s,sourceMap:this.sourceMap})),e.extract(this.resourcePath,o).then((t=>{r(null,t.code,t.map?JSON.parse(t.map):void 0)})).catch(r)}export{o as default};

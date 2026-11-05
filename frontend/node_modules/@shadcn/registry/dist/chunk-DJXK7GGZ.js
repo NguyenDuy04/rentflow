@@ -1,1 +1,0 @@
-import {a as a$1}from'./chunk-JGH4L3MV.js';import s from'ora';var e=new Set;function a(o,t){let n=s({text:o,isSilent:t?.silent});e.add(n);let i=n.stop.bind(n);return n.stop=()=>(e.delete(n),i()),n}function f(o){let t=process.stderr.isTTY?Array.from(e).filter(n=>n.isSpinning):[];for(let n of t)n.clear();a$1.log(o);for(let n of t)n.render();}export{a,f as b};

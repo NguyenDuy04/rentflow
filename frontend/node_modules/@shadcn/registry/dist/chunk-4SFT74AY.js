@@ -1,1 +1,0 @@
-var i=/^(@[a-zA-Z0-9](?:[a-zA-Z0-9-_]*[a-zA-Z0-9])?)\/(.+)$/;function e(t){if(!t.startsWith("@"))return {registry:null,item:t};let r=t.match(i);return r?{registry:r[1],item:r[2]}:{registry:null,item:t}}export{e as a};

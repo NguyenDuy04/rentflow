@@ -1,1 +1,0 @@
-import {a}from'./chunk-WN656L3S.js';var e={error(...o){console.log(a.error(o.join(" ")));},warn(...o){console.log(a.warn(o.join(" ")));},info(...o){console.log(a.info(o.join(" ")));},success(...o){console.log(a.success(o.join(" ")));},log(...o){console.log(o.join(" "));},break(){console.log("");}};export{e as a};
