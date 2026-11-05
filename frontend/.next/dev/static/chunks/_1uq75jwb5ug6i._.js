@@ -1,5 +1,0 @@
-(globalThis["TURBOPACK_CHUNK_LISTS"] || (globalThis["TURBOPACK_CHUNK_LISTS"] = [])).push({
-    script: typeof document === "object" ? document.currentScript : undefined,
-    chunks: ["static/chunks/[root-of-the-server]__0kfj2xim0ief6._.css","static/chunks/node_modules_next_dist_20wefz_f1k6jn._.js","static/chunks/node_modules_1fu_4ffz_v3le._.js","static/chunks/src_1_d8es3pkxx9h._.js","static/chunks/[next]_internal_font_google_inter_46a7eda2_module_1qq-7h0b5__u_.css","static/chunks/src_1tdl-u26y-h0_._.js","static/chunks/node_modules_react-hook-form_dist_index_esm_mjs_0b0kr13k-yekm._.js","static/chunks/node_modules_next_1z3m95wt3-fom._.js","static/chunks/node_modules_tailwind-merge_dist_bundle-mjs_mjs_0q79z23r57r2s._.js","static/chunks/node_modules_@base-ui_react_1qlw7avmpqjzs._.js","static/chunks/node_modules_zod_v4_classic_18b_f9gol1tr5._.js","static/chunks/node_modules_zod_v4_core_14qn2mg1f8pkp._.js","static/chunks/node_modules_zod_v4_locales_1-ided7izgr--._.js","static/chunks/node_modules_0b3ny73qhzz4c._.js"],
-    source: "entry"
-});
