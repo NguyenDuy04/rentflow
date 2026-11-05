@@ -1,0 +1,103 @@
+{
+  "name": "unrs-resolver",
+  "version": "1.13.0",
+  "description": "UnRS Resolver Node API",
+  "homepage": "https://github.com/unrs/unrs-resolver",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/unrs/unrs-resolver.git"
+  },
+  "funding": {
+    "url": "https://opencollective.com/unrs-resolver"
+  },
+  "files": [
+    "browser.js",
+    "index.d.ts",
+    "index.js"
+  ],
+  "main": "index.js",
+  "browser": "browser.js",
+  "types": "index.d.ts",
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "dependencies": {
+    "napi-postinstall": "^0.3.7"
+  },
+  "devDependencies": {
+    "@emnapi/core": "2.0.0-alpha.6",
+    "@emnapi/runtime": "2.0.0-alpha.6",
+    "@napi-rs/cli": "^3.8.6",
+    "@napi-rs/wasm-runtime": "^1.2.0",
+    "@types/node": "^25.0.8",
+    "clean-pkg-json": "^1.4.2",
+    "emnapi": "2.0.0-alpha.6",
+    "typescript": "^7.0.0",
+    "vite-plus": "^1.0.0"
+  },
+  "napi": {
+    "binaryName": "resolver",
+    "packageName": "@unrs/resolver-binding",
+    "targets": [
+      "aarch64-apple-darwin",
+      "aarch64-linux-android",
+      "aarch64-pc-windows-msvc",
+      "aarch64-unknown-linux-gnu",
+      "aarch64-unknown-linux-musl",
+      "aarch64-unknown-linux-ohos",
+      "armv7-linux-androideabi",
+      "armv7-unknown-linux-gnueabihf",
+      "armv7-unknown-linux-musleabihf",
+      "i686-pc-windows-msvc",
+      "loongarch64-unknown-linux-gnu",
+      "loongarch64-unknown-linux-musl",
+      "powerpc64le-unknown-linux-gnu",
+      "riscv64gc-unknown-linux-gnu",
+      "riscv64gc-unknown-linux-musl",
+      "s390x-unknown-linux-gnu",
+      "wasm32-wasip1-threads",
+      "x86_64-apple-darwin",
+      "x86_64-pc-windows-msvc",
+      "x86_64-unknown-freebsd",
+      "x86_64-unknown-linux-gnu",
+      "x86_64-unknown-linux-musl"
+    ],
+    "wasm": {
+      "browser": {
+        "fs": true
+      }
+    }
+  },
+  "optionalDependencies": {
+    "@unrs/resolver-binding-darwin-arm64": "1.13.0",
+    "@unrs/resolver-binding-android-arm64": "1.13.0",
+    "@unrs/resolver-binding-win32-arm64-msvc": "1.13.0",
+    "@unrs/resolver-binding-linux-arm64-gnu": "1.13.0",
+    "@unrs/resolver-binding-linux-arm64-musl": "1.13.0",
+    "@unrs/resolver-binding-openharmony-arm64": "1.13.0",
+    "@unrs/resolver-binding-android-arm-eabi": "1.13.0",
+    "@unrs/resolver-binding-linux-arm-gnueabihf": "1.13.0",
+    "@unrs/resolver-binding-linux-arm-musleabihf": "1.13.0",
+    "@unrs/resolver-binding-win32-ia32-msvc": "1.13.0",
+    "@unrs/resolver-binding-linux-loong64-gnu": "1.13.0",
+    "@unrs/resolver-binding-linux-loong64-musl": "1.13.0",
+    "@unrs/resolver-binding-linux-ppc64-gnu": "1.13.0",
+    "@unrs/resolver-binding-linux-riscv64-gnu": "1.13.0",
+    "@unrs/resolver-binding-linux-riscv64-musl": "1.13.0",
+    "@unrs/resolver-binding-linux-s390x-gnu": "1.13.0",
+    "@unrs/resolver-binding-darwin-x64": "1.13.0",
+    "@unrs/resolver-binding-win32-x64-msvc": "1.13.0",
+    "@unrs/resolver-binding-freebsd-x64": "1.13.0",
+    "@unrs/resolver-binding-linux-x64-gnu": "1.13.0",
+    "@unrs/resolver-binding-linux-x64-musl": "1.13.0"
+  },
+  "scripts": {
+    "fmt": "vp fmt",
+    "test": "vp test run -r ./napi",
+    "build:debug": "node napi/build.mjs",
+    "build": "pnpm build:debug --features allocator --release",
+    "postbuild:debug": "node napi/patch.mjs"
+  }
+}

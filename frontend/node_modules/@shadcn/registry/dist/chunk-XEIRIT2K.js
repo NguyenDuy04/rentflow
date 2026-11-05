@@ -1,0 +1,1 @@
+import t from'path';import e from'fs-extra';function c(o="",a=true){let n=t.join(o,"package.json");return e.readJSONSync(n,{throws:a})}export{c as a};

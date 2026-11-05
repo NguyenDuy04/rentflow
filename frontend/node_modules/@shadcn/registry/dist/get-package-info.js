@@ -1,0 +1,1 @@
+export{a as getPackageInfo}from'./chunk-XEIRIT2K.js';

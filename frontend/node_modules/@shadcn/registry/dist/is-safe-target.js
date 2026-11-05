@@ -1,0 +1,1 @@
+export{a as isSafeTarget}from'./chunk-FFFAOODY.js';

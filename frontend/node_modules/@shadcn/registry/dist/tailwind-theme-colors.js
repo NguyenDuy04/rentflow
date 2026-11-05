@@ -1,0 +1,1 @@
+export{a as buildTailwindThemeColorsFromCssVars}from'./chunk-LA2WH2E5.js';

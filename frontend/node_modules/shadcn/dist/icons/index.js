@@ -1,0 +1,1 @@
+export{b as getIconModuleSpecifier,a as parseImportTemplate,c as parseUsageTemplate}from'../chunk-3W6BGJGE.js';export*from'@shadcn/registry/internal/icons/libraries';

@@ -1,0 +1,1 @@
+var c={"--font-heading":"cn-font-heading"};function a(r){return r.startsWith("--")?r:`--${r}`}function f(r){let t=new Set;for(let s of r){for(let e of s.fonts??[]){let o=e.font?.variable;if(!o)continue;let n=c[o];n&&t.add(n);}for(let e of Object.values(s.cssVars??{}))for(let o of Object.keys(e??{})){let n=c[a(o)];n&&t.add(n);}}return Array.from(t)}export{f as a};

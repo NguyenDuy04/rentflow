@@ -1,0 +1,2 @@
+"use client";
+import o from"next/link";import{forwardRef as e}from"react";import{useLocale as r}from"use-intl";import l from"./syncLocaleCookie.js";import{jsx as c}from"react/jsx-runtime";const n=o;function t({curLocale:o,linkRef:e,locale:r,localeCookie:t,onClick:i,prefetch:f,...a}){return c(n,{ref:e,hrefLang:r,onClick:function(e){l(t,o,r),i&&i(e)},prefetch:!1,...a})}function i({locale:o,localeCookie:e,...l},i){const f=r();return null!=o&&o!==f?c(t,{curLocale:f,linkRef:i,locale:o,localeCookie:e,...l}):c(n,{ref:i,...l})}var f=e(i);export{f as default};

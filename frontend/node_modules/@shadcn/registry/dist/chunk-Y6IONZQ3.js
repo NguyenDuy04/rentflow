@@ -1,0 +1,3 @@
+function w(a,l,m={}){let{ignoreImports:c=false}=m,t=a.replace(/\r\n/g,`
+`).trim(),n=l.replace(/\r\n/g,`
+`).trim();if(t===n)return  true;if(!c)return  false;let g=/^(import\s+(?:type\s+)?(?:\*\s+as\s+\w+|\{[^}]*\}|\w+)?(?:\s*,\s*(?:\{[^}]*\}|\w+))?\s+from\s+["'])([^"']+)(["'])/gm,e=z=>z.replace(g,(d,s,r,o)=>{if(r.startsWith("."))return `${s}${r}${o}`;let i=r.split("/"),$=i[i.length-1];return `${s}@normalized/${$}${o}`}),p=e(t),u=e(n);return p===u}export{w as a};

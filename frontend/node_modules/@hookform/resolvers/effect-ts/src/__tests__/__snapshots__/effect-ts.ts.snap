@@ -1,0 +1,73 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`effectTsResolver > should return a single error from effectTsResolver when validation fails 1`] = `
+{
+  "errors": {
+    "animal": {
+      "message": "Expected string | "bird" | "snake"",
+      "ref": undefined,
+      "type": "AnyOf",
+    },
+    "luckyNumbers": [
+      ,
+      ,
+      {
+        "message": "Expected number",
+        "ref": undefined,
+        "type": "InvalidType",
+      },
+    ],
+    "password": {
+      "message": "At least 1 special character.",
+      "ref": {
+        "name": "password",
+      },
+      "type": "Filter",
+    },
+    "vehicles": [
+      ,
+      {
+        "horsepower": {
+          "message": "Missing key",
+          "ref": undefined,
+          "type": "MissingKey",
+        },
+      },
+    ],
+  },
+  "values": {},
+}
+`;
+
+exports[`effectTsResolver > should return all the errors from effectTsResolver when validation fails with \`validateAllFieldCriteria\` set to true 1`] = `
+{
+  "errors": {
+    "phoneNumber": {
+      "message": "Please enter a valid phone number in international format.",
+      "ref": {
+        "name": "phoneNumber",
+      },
+      "type": "Filter",
+      "types": {
+        "Filter": "Please enter a valid phone number in international format.",
+      },
+    },
+  },
+  "values": {},
+}
+`;
+
+exports[`effectTsResolver > should return the first error from effectTsResolver when validation fails with \`validateAllFieldCriteria\` set to firstError 1`] = `
+{
+  "errors": {
+    "phoneNumber": {
+      "message": "Please enter a valid phone number in international format.",
+      "ref": {
+        "name": "phoneNumber",
+      },
+      "type": "Filter",
+    },
+  },
+  "values": {},
+}
+`;

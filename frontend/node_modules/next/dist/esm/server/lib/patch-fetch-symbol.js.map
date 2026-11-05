@@ -1,0 +1,1 @@
+{"version":3,"sources":["../../../../src/server/lib/patch-fetch-symbol.ts"],"sourcesContent":["export const NEXT_PATCH_SYMBOL = Symbol.for('next-patch')\n"],"names":["NEXT_PATCH_SYMBOL","Symbol","for"],"mappings":"AAAA,OAAO,MAAMA,oBAAoBC,OAAOC,GAAG,CAAC,cAAa","ignoreList":[0]}

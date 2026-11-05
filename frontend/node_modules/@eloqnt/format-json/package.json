@@ -1,0 +1,35 @@
+{
+  "name": "@eloqnt/format-json",
+  "version": "0.1.0",
+  "description": "JSON messages support for eloqnt",
+  "homepage": "https://cli.eloqnt.dev/docs/configuration",
+  "license": "MIT",
+  "files": [
+    "dist",
+    "!dist/**/*.map",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.mts",
+      "import": "./dist/index.mjs",
+      "default": "./dist/index.mjs"
+    }
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "@eloqnt/config": "^0.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^25.9.5",
+    "typescript": "^6.0.3",
+    "vite-plus": "^0.2.8"
+  },
+  "scripts": {
+    "build": "vp pack --minify src/index.ts"
+  }
+}

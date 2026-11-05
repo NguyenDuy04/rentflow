@@ -1,0 +1,3 @@
+:HL["/_next/static/chunks/0_kvc_ki1kspd.css","style"]
+1:[["children",{"s":"__PAGE__","h":160}]]
+0:{"b":"KvPBmP5_63ykpTV4fqD7V","t":{"t":{"s":"","h":80,"c":"$Q1"}}}

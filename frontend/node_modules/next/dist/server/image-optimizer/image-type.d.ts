@@ -1,0 +1,14 @@
+export declare const AVIF = "image/avif";
+export declare const WEBP = "image/webp";
+export declare const PNG = "image/png";
+export declare const JPEG = "image/jpeg";
+export declare const JXL = "image/jxl";
+export declare const JP2 = "image/jp2";
+export declare const HEIC = "image/heic";
+export declare const GIF = "image/gif";
+export declare const SVG = "image/svg+xml";
+export declare const ICO = "image/x-icon";
+export declare const ICNS = "image/x-icns";
+export declare const TIFF = "image/tiff";
+export declare const BMP = "image/bmp";
+export declare const PDF = "application/pdf";

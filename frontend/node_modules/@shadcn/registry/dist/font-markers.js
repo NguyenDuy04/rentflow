@@ -1,0 +1,1 @@
+export{a as getSupportedFontMarkers}from'./chunk-6MJC67AJ.js';

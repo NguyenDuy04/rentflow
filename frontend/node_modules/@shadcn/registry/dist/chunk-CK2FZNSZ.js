@@ -1,0 +1,1 @@
+import {e}from'./chunk-V47DXQF3.js';import {q,r}from'./chunk-7BJVMVDG.js';function l(t,e$1,p){let r$1=e$1.id.end,i=q(t,{pos:r$1,start:r(t,r$1)},{end:r$1,isComment:false});for(;t[i-1]===" "||t[i-1]==="	";)i--;return e(t,[{start:i,end:e$1.init.end,text:""},{start:r$1,end:r$1,text:` = ${p}`}])}export{l as a};

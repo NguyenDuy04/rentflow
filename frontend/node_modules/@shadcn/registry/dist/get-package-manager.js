@@ -1,0 +1,1 @@
+export{a as getPackageManager,b as getPackageManagerFromUserAgent,d as getPackageRunner,c as getPackageRunnerCommand}from'./chunk-34X3C4PK.js';

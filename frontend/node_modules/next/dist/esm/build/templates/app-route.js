@@ -1,0 +1,408 @@
+import { AppRouteRouteModule } from '../../server/route-modules/app-route/module.compiled';
+import { RouteKind } from '../../server/route-kind';
+import { patchFetch as _patchFetch } from '../../server/lib/patch-fetch';
+import { addRequestMeta, getRequestMeta, setRequestMeta } from '../../server/request-meta';
+import { getTracer, SpanStatusCode } from '../../server/lib/trace/tracer';
+import { setManifestsSingleton } from '../../server/app-render/manifests-singleton';
+import { normalizeAppPath } from '../../shared/lib/router/utils/app-paths';
+import { NodeNextRequest, NodeNextResponse } from '../../server/base-http/node';
+import { NextRequestAdapter, signalFromNodeResponse } from '../../server/web/spec-extension/adapters/next-request';
+import { BaseServerSpan } from '../../server/lib/trace/constants';
+import { getRevalidateReason } from '../../server/instrumentation/utils';
+import { sendResponse } from '../../server/send-response';
+import { fromNodeOutgoingHttpHeaders, toNodeOutgoingHttpHeaders } from '../../server/web/utils';
+import { getCacheControlHeader } from '../../server/lib/cache-control';
+import { INFINITE_CACHE, NEXT_CACHE_TAGS_HEADER } from '../../lib/constants';
+import { NoFallbackError } from '../../shared/lib/no-fallback-error.external';
+import { isRouteCacheOwner } from '../../server/lib/route-cache-key';
+import { CachedRouteKind } from '../../server/response-cache';
+// We inject the nextConfigOutput here so that we can use them in the route
+// module.
+// INJECT:nextConfigOutput
+const routeModule = new AppRouteRouteModule({
+    definition: {
+        kind: RouteKind.APP_ROUTE,
+        page: 'VAR_DEFINITION_PAGE',
+        pathname: 'VAR_DEFINITION_PATHNAME',
+        filename: 'VAR_DEFINITION_FILENAME',
+        bundlePath: 'VAR_DEFINITION_BUNDLE_PATH'
+    },
+    distDir: process.env.__NEXT_RELATIVE_DIST_DIR || '',
+    relativeProjectDir: process.env.__NEXT_RELATIVE_PROJECT_DIR || '',
+    resolvedPagePath: 'VAR_RESOLVED_PAGE_PATH',
+    nextConfigOutput,
+    // The lazy require factory ensures that:
+    // - In dev: devRequestTimingInternalsEnd is set before userland executes,
+    //   correctly attributing module load time to application-code rather than
+    //   framework internals.
+    // - In all modes: async modules (route files with top-level await) are
+    //   handled correctly — require() returns a Promise for such modules, which
+    //   ensureUserland() awaits before the first request is handled.
+    userland: ()=>require('VAR_USERLAND'),
+    // In Turbopack dev mode, also provide a synchronous per-request getter so
+    // server HMR updates are picked up without re-executing the entry chunk.
+    // Using require() (synchronous) avoids adding async overhead that would be
+    // incorrectly attributed to application-code time in devRequestTiming.
+    ...process.env.TURBOPACK && process.env.__NEXT_DEV_SERVER ? {
+        getUserland: ()=>require('VAR_USERLAND')
+    } : {}
+});
+// Pull out the exports that we need to expose from the module. This should
+// be eliminated when we've moved the other routes to the new format. These
+// are used to hook into the route.
+const { workAsyncStorage, workUnitAsyncStorage, serverHooks } = routeModule;
+function patchFetch() {
+    return _patchFetch({
+        workAsyncStorage,
+        workUnitAsyncStorage
+    });
+}
+export { routeModule, workAsyncStorage, workUnitAsyncStorage, serverHooks, patchFetch,  };
+export async function handler(req, res, ctx) {
+    if (ctx.requestMeta) {
+        setRequestMeta(req, ctx.requestMeta);
+    }
+    if (routeModule.isDev) {
+        addRequestMeta(req, 'devRequestTimingInternalsEnd', process.hrtime.bigint());
+    }
+    let srcPage = 'VAR_DEFINITION_PAGE';
+    // turbopack doesn't normalize `/index` in the page name
+    // so we need to to process dynamic routes properly
+    // TODO: fix turbopack providing differing value from webpack
+    if (process.env.TURBOPACK) {
+        srcPage = srcPage.replace(/\/index$/, '') || '/';
+    } else if (srcPage === '/index') {
+        // we always normalize /index specifically
+        srcPage = '/';
+    }
+    const multiZoneDraftMode = process.env.__NEXT_MULTI_ZONE_DRAFT_MODE;
+    // Registering `instrumentation.ts` usually installs the tracer provider, so
+    // do it before starting the request span. The span is started before
+    // `prepare`, so route module preparation is part of the request's trace.
+    // When this request triggers registration, the lifecycle spans of
+    // `instrumentation.ts` are emitted inside the request span.
+    const { instrumentation } = await routeModule.ensureInstrumentation(req, {
+        deferSpans: true
+    });
+    return routeModule.traceRequest(req, {
+        tracer: getTracer(),
+        spanName: `${req.method || 'GET'} ${srcPage}`,
+        httpTarget: req.url,
+        instrumentation
+    }, (requestSpan, requestRootSpan)=>handleRequest(req, res, ctx, srcPage, multiZoneDraftMode, requestSpan, requestRootSpan));
+}
+async function handleRequest(req, res, ctx, srcPage, multiZoneDraftMode, requestSpan, requestRootSpan) {
+    const prepareResult = await routeModule.prepare(req, res, {
+        srcPage,
+        multiZoneDraftMode
+    });
+    if (!prepareResult) {
+        res.statusCode = 400;
+        res.end('Bad Request');
+        ctx.waitUntil == null ? void 0 : ctx.waitUntil.call(ctx, Promise.resolve());
+        return null;
+    }
+    const { buildId, deploymentId, params, nextConfig, parsedUrl, isDraftMode, prerenderManifest, routerServerContext, isOnDemandRevalidate, revalidateOnlyGenerated, resolvedPathname, clientReferenceManifest, serverActionsManifest, previewProps } = prepareResult;
+    const normalizedSrcPage = normalizeAppPath(srcPage);
+    // Only this route's prerenders can establish ISR or admit generated params.
+    const isPrerendered = Boolean(prerenderManifest.routes[resolvedPathname]) && (routeModule.isDev || isRouteCacheOwner(resolvedPathname, routeModule.cacheOwner, prerenderManifest.routes[resolvedPathname]));
+    let isIsr = Boolean(prerenderManifest.dynamicRoutes[normalizedSrcPage] || isPrerendered);
+    const render404 = async ()=>{
+        // TODO: should route-module itself handle rendering the 404
+        if (routerServerContext == null ? void 0 : routerServerContext.render404) {
+            await routerServerContext.render404(req, res, parsedUrl, false);
+        } else {
+            res.end('This page could not be found');
+        }
+        return null;
+    };
+    if (isIsr && !isDraftMode) {
+        const prerenderInfo = prerenderManifest.dynamicRoutes[normalizedSrcPage];
+        if (prerenderInfo) {
+            if (prerenderInfo.fallback === false && !isPrerendered) {
+                if (nextConfig.adapterPath) {
+                    return await render404();
+                }
+                throw new NoFallbackError();
+            }
+        }
+    }
+    let cacheKey = null;
+    if (isIsr && !routeModule.isDev && !isDraftMode) {
+        cacheKey = resolvedPathname;
+        // ensure /index and / is normalized to one key
+        cacheKey = cacheKey === '/index' ? '/' : cacheKey;
+    }
+    // Before rendering (which initializes component tree modules), we have to
+    // set the reference manifests to our global store so Server Action's
+    // encryption util can access to them at the top level of the page module.
+    if (serverActionsManifest && clientReferenceManifest) {
+        setManifestsSingleton({
+            page: srcPage,
+            clientReferenceManifest,
+            serverActionsManifest
+        });
+    }
+    const method = req.method || 'GET';
+    const tracer = getTracer();
+    const isWrappedByNextServer = Boolean(routerServerContext == null ? void 0 : routerServerContext.isWrappedByNextServer);
+    const isMinimalMode = Boolean(getRequestMeta(req, 'minimalMode'));
+    const incrementalCache = getRequestMeta(req, 'incrementalCache') || await routeModule.getIncrementalCache(req, nextConfig, previewProps, prerenderManifest, isMinimalMode);
+    incrementalCache == null ? void 0 : incrementalCache.resetRequestCache();
+    globalThis.__incrementalCache = incrementalCache;
+    const context = {
+        params,
+        previewProps,
+        renderOpts: {
+            experimental: {
+                authInterrupts: Boolean(nextConfig.experimental.authInterrupts),
+                useCacheTimeout: nextConfig.experimental.useCacheTimeout,
+                durableUseCacheEntries: Boolean(nextConfig.experimental.durableUseCacheEntries)
+            },
+            cacheComponents: Boolean(nextConfig.cacheComponents),
+            validationLevel: nextConfig.experimental.instantInsights.validationLevel,
+            isDraftMode,
+            incrementalCache,
+            hmrRefreshHash: getRequestMeta(req, 'hmrRefreshHash'),
+            cacheLifeProfiles: nextConfig.cacheLife,
+            staticPageGenerationTimeout: nextConfig.staticPageGenerationTimeout,
+            waitUntil: ctx.waitUntil,
+            onClose: (cb)=>{
+                res.on('close', cb);
+            },
+            onAfterTaskError: undefined
+        },
+        sharedContext: {
+            buildId,
+            deploymentId
+        }
+    };
+    const nodeNextReq = new NodeNextRequest(req);
+    const nodeNextRes = new NodeNextResponse(res);
+    const nextReq = NextRequestAdapter.fromNodeNextRequest(nodeNextReq, signalFromNodeResponse(res));
+    const responseGenerator = async ({ previousCacheEntry })=>{
+        try {
+            if (!isMinimalMode && isOnDemandRevalidate && revalidateOnlyGenerated && !previousCacheEntry) {
+                res.statusCode = 404;
+                // on-demand revalidate always sets this header
+                res.setHeader('x-nextjs-cache', 'REVALIDATED');
+                res.end('This page could not be found');
+                return null;
+            }
+            const response = cacheKey === null ? await routeModule.handle(nextReq, context) : await routeModule.prerender(nextReq, context);
+            req.fetchMetrics = context.renderOpts.fetchMetrics;
+            let pendingWaitUntil = context.renderOpts.pendingWaitUntil;
+            // Attempt using provided waitUntil if available
+            // if it's not we fallback to sendResponse's handling
+            if (pendingWaitUntil) {
+                if (ctx.waitUntil) {
+                    ctx.waitUntil(pendingWaitUntil);
+                    pendingWaitUntil = undefined;
+                }
+            }
+            const cacheTags = context.renderOpts.collectedTags;
+            // If the request is for a static response, we can cache it so long
+            // as it's not edge.
+            if (isIsr) {
+                const blob = await response.blob();
+                // Copy the headers from the response.
+                const headers = toNodeOutgoingHttpHeaders(response.headers);
+                if (cacheTags) {
+                    headers[NEXT_CACHE_TAGS_HEADER] = cacheTags;
+                }
+                if (!headers['content-type'] && blob.type) {
+                    headers['content-type'] = blob.type;
+                }
+                const revalidate = typeof context.renderOpts.collectedRevalidate === 'undefined' || context.renderOpts.collectedRevalidate >= INFINITE_CACHE ? false : context.renderOpts.collectedRevalidate;
+                const expire = typeof context.renderOpts.collectedExpire === 'undefined' || context.renderOpts.collectedExpire >= INFINITE_CACHE ? // route has a numeric `revalidate` but didn't declare an
+                // explicit `expire` (e.g. via `cacheLife`). This mirrors the
+                // build-time fallback in `build/index.ts` so cache entries
+                // and the response Cache-Control header agree on the route's
+                // effective expire. Routes that opt out of revalidation
+                // (`revalidate: false`) or that are dynamic (`revalidate: 0`)
+                // keep `expire: undefined`.
+                revalidate !== false && revalidate > 0 ? nextConfig.expireTime : undefined : context.renderOpts.collectedExpire;
+                // Create the cache entry for the response.
+                const cacheEntry = {
+                    value: {
+                        kind: CachedRouteKind.APP_ROUTE,
+                        status: response.status,
+                        body: Buffer.from(await blob.arrayBuffer()),
+                        headers
+                    },
+                    cacheControl: {
+                        revalidate,
+                        expire
+                    }
+                };
+                return cacheEntry;
+            } else {
+                // send response without caching if not ISR
+                await sendResponse(nodeNextReq, nodeNextRes, response, pendingWaitUntil);
+                return null;
+            }
+        } catch (err) {
+            // if this is a background revalidate we need to report
+            // the request error here as it won't be bubbled
+            if (previousCacheEntry == null ? void 0 : previousCacheEntry.isStale) {
+                const silenceLog = false;
+                await routeModule.onRequestError(req, err, {
+                    routerKind: 'App Router',
+                    routePath: srcPage,
+                    routeType: 'route',
+                    revalidateReason: getRevalidateReason({
+                        isStaticGeneration: cacheKey !== null,
+                        isOnDemandRevalidate
+                    })
+                }, silenceLog, routerServerContext);
+            }
+            throw err;
+        }
+    };
+    const handleResponse = async (currentSpan)=>{
+        try {
+            var _cacheEntry_value;
+            const cacheEntry = await routeModule.handleResponse({
+                req,
+                nextConfig,
+                cacheKey,
+                routeKind: RouteKind.APP_ROUTE,
+                isFallback: false,
+                previewProps,
+                prerenderManifest,
+                isRoutePPREnabled: false,
+                isOnDemandRevalidate,
+                revalidateOnlyGenerated,
+                responseGenerator,
+                waitUntil: ctx.waitUntil,
+                isMinimalMode
+            });
+            if (cacheEntry !== null && 'error' in cacheEntry) {
+                throw cacheEntry.error;
+            }
+            // we don't create a cacheEntry for ISR
+            if (!isIsr) {
+                return;
+            }
+            if ((cacheEntry == null ? void 0 : (_cacheEntry_value = cacheEntry.value) == null ? void 0 : _cacheEntry_value.kind) !== CachedRouteKind.APP_ROUTE) {
+                var _cacheEntry_value1;
+                throw new Error(`Invariant: app-route received invalid cache entry ${cacheEntry == null ? void 0 : (_cacheEntry_value1 = cacheEntry.value) == null ? void 0 : _cacheEntry_value1.kind}`);
+            }
+            if (!isMinimalMode) {
+                res.setHeader('x-nextjs-cache', isOnDemandRevalidate ? 'REVALIDATED' : cacheEntry.isMiss ? 'MISS' : cacheEntry.isStale ? 'STALE' : 'HIT');
+            }
+            // Draft mode should never be cached
+            if (isDraftMode) {
+                res.setHeader('Cache-Control', 'private, no-cache, no-store, max-age=0, must-revalidate');
+            }
+            const headers = fromNodeOutgoingHttpHeaders(cacheEntry.value.headers);
+            if (!(isMinimalMode && isIsr)) {
+                headers.delete(NEXT_CACHE_TAGS_HEADER);
+            }
+            // If cache control is already set on the response we don't
+            // override it to allow users to customize it via next.config
+            if (cacheEntry.cacheControl && !res.getHeader('Cache-Control') && !headers.get('Cache-Control')) {
+                headers.set('Cache-Control', getCacheControlHeader(cacheEntry.cacheControl));
+            }
+            await sendResponse(nodeNextReq, nodeNextRes, // @ts-expect-error - Argument of type 'Buffer<ArrayBufferLike>' is not assignable to parameter of type 'BodyInit | null | undefined'.
+            new Response(cacheEntry.value.body, {
+                headers,
+                status: cacheEntry.value.status || 200
+            }));
+            return;
+        } catch (err) {
+            if (!(err instanceof NoFallbackError)) {
+                const silenceLog = false;
+                await routeModule.onRequestError(req, err, {
+                    routerKind: 'App Router',
+                    routePath: normalizedSrcPage,
+                    routeType: 'route',
+                    revalidateReason: getRevalidateReason({
+                        isStaticGeneration: cacheKey !== null,
+                        isOnDemandRevalidate
+                    })
+                }, silenceLog, routerServerContext);
+            }
+            // rethrow so that we can handle serving error page
+            // If this is during static generation, throw the error again.
+            if (isIsr) throw err;
+            // Otherwise, send a 500 response unless the original response has
+            // already committed. In that case, preserve its status code for
+            // telemetry while still recording the failure and terminating a response
+            // that the failed pipeline left open.
+            if (res.headersSent) {
+                if (currentSpan) {
+                    const error = err instanceof Error ? err : new Error('Unknown app route error');
+                    currentSpan.recordException(error);
+                    currentSpan.setStatus({
+                        code: SpanStatusCode.ERROR,
+                        message: error.message
+                    });
+                    currentSpan.setAttribute('error.type', error.name);
+                }
+                if (!res.writableEnded && !res.destroyed) {
+                    res.end();
+                }
+            } else {
+                await sendResponse(nodeNextReq, nodeNextRes, new Response(null, {
+                    status: 500
+                }));
+            }
+            return;
+        } finally{
+            ;
+            (()=>{
+                if (!currentSpan) {
+                    return;
+                }
+                let statusCode = res.statusCode;
+                currentSpan.setAttributes({
+                    'http.status_code': statusCode,
+                    'next.rsc': false
+                });
+                if (statusCode && statusCode >= 500) {
+                    // For 5xx status codes: SHOULD be set to 'Error' span status.
+                    // x-ref: https://opentelemetry.io/docs/specs/semconv/http/http-spans/#status
+                    currentSpan.setStatus({
+                        code: SpanStatusCode.ERROR
+                    });
+                    // For span status 'Error', SHOULD set 'error.type' attribute.
+                    currentSpan.setAttribute('error.type', statusCode.toString());
+                }
+                const rootSpanAttributes = tracer.getRootSpanAttributes();
+                // We were unable to get attributes, probably OTEL is not enabled
+                if (!rootSpanAttributes) {
+                    return;
+                }
+                if (rootSpanAttributes.get('next.span_type') !== BaseServerSpan.handleRequest) {
+                    console.warn(`Unexpected root span type '${rootSpanAttributes.get('next.span_type')}'. Please report this Next.js issue https://github.com/vercel/next.js`);
+                    return;
+                }
+                const route = rootSpanAttributes.get('next.route') || normalizedSrcPage;
+                const name = `${method} ${route}`;
+                currentSpan.setAttributes({
+                    'next.route': route,
+                    'http.route': route,
+                    'next.span_name': name
+                });
+                currentSpan.updateName(name);
+                // Propagate http.route to the request's root span if it isn't the
+                // request span (e.g. a platform-created HTTP span in adapter
+                // deployments).
+                if (requestRootSpan && requestRootSpan !== currentSpan) {
+                    requestRootSpan.setAttribute('http.route', route);
+                    requestRootSpan.updateName(name);
+                }
+            })();
+        }
+    };
+    // When invoked directly, the request span was started before `prepare`;
+    // record the request target as normalized by it. next-server's request span
+    // already has it.
+    if (!isWrappedByNextServer && req.url !== undefined) {
+        requestSpan == null ? void 0 : requestSpan.setAttribute('http.target', req.url);
+    }
+    await handleResponse(requestSpan);
+}
+
+//# sourceMappingURL=app-route.js.map

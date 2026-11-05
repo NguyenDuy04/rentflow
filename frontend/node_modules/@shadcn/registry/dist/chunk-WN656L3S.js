@@ -1,0 +1,1 @@
+import {green,cyan,yellow,red}from'kleur/colors';var i={error:red,warn:yellow,info:cyan,success:green};export{i as a};
