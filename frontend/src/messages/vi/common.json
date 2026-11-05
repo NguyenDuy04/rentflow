@@ -1,1 +1,146 @@
-{}
+{
+  "app": {
+    "loading": "Đang tải RentFlow..."
+  },
+  "dashboard": {
+    "overviews": "Tổng quan",
+    "operational-rental": "Tình hình hoạt động khu trọ của bạn",
+    "overview": {
+      "totalRooms": "Tổng số phòng",
+      "occupied": "đang thuê",
+      "vacant": "trống",
+
+      "occupancyRate": "Tỷ lệ lấp đầy",
+      "maintenanceRooms": "phòng đang bảo trì",
+
+      "monthlyRevenue": "Doanh thu tháng này",
+      "receivedPayments": "Tổng thanh toán đã nhận trong tháng",
+
+      "unpaidBills": "Hóa đơn chưa thanh toán",
+      "paymentReminder": "Cần theo dõi & nhắc thanh toán"
+    },
+    "revenueChart": {
+      "title": "Doanh thu theo tháng",
+      "months": "{value} tháng",
+      "revenue": "Doanh thu",
+      "millionShort": "tr"
+    },
+    "alerts": {
+      "title": "Cảnh báo",
+      "noAlerts": "Không có cảnh báo nào. Mọi thứ đều ổn định.",
+
+      "overdueBill": "Hóa đơn {billCode} quá hạn",
+      "dueDate": "hạn {date}",
+
+      "contractExpiring": "Hợp đồng của {fullName} sắp hết hạn",
+      "contractEndDate": "Hết hạn {date}",
+
+      "roomMaintenance": "Phòng {roomName} đang bảo trì",
+      "roomCode": "Mã phòng: {roomCode}"
+    },
+    "recentActivities": {
+      "title": "Hoạt động gần đây",
+      "empty": "Chưa có hoạt động nào."
+    },
+    "sidebar": {
+      "brand": "RentFlow",
+      "footer": "RentFlow · Quản lý phòng trọ",
+
+      "overview": "Tổng quan",
+      "rooms": "Phòng",
+      "tenants": "Người thuê",
+      "meters": "Điện nước",
+      "billing": "Hóa đơn",
+      "payments": "Thanh toán",
+      "settings": "Cài đặt",
+      "team": "Nhân viên",
+      "audit": "Nhật ký kiểm toán",
+      "issues": "Báo sự cố",
+      "tenantPortal": "Cổng người thuê"
+    },
+    "header": {
+      "brand": "RentFlow",
+      "defaultUser": "Chủ trọ",
+      "darkTheme": "Bật giao diện tối",
+      "lightTheme": "Bật giao diện sáng",
+      "profile": "Hồ sơ cá nhân",
+      "logout": "Đăng xuất"
+    },
+    "bottomNav": {
+      "overview": "Tổng quan",
+      "rooms": "Phòng",
+      "tenants": "Người thuê",
+      "billing": "Hóa đơn",
+      "meters": "Điện nước",
+      "payments": "Thanh toán",
+      "settings": "Cài đặt",
+      "team": "Nhân viên",
+      "audit": "Nhật ký",
+      "issues": "Sự cố",
+      "tenantPortal": "Của tôi",
+      "more": "Thêm"
+    }
+  },
+  "auth": {
+    "validation": {
+      "invalidEmail": "Email không hợp lệ",
+      "requiredPassword": "Vui lòng nhập mật khẩu",
+      "requiredFullName": "Vui lòng nhập họ tên",
+      "passwordMinLength": "Mật khẩu phải có ít nhất 6 ký tự",
+      "requiredConfirmPassword": "Vui lòng xác nhận mật khẩu",
+      "passwordMismatch": "Mật khẩu xác nhận không khớp"
+    },
+    "layout": {
+      "brand": "RentFlow",
+      "footer": "RentFlow · Quản lý phòng trọ",
+      "features": {
+        "management": "Quản lý phòng và người thuê tập trung",
+        "meters": "Nhập chỉ số điện nước, tự động tính hóa đơn",
+        "billing": "Xuất hóa đơn PDF tiếng Việt, theo dõi thanh toán",
+        "dashboard": "Dashboard doanh thu và cảnh báo theo thời gian thực"
+      }
+    },
+    "register": {
+      "eyebrow": "Bắt đầu ngay",
+      "title": "Thiết lập RentFlow cho khu trọ của bạn",
+      "subtitle": "Chỉ mất một phút. Tài khoản này sẽ là tài khoản chủ trọ duy nhất quản lý toàn bộ hệ thống.",
+
+      "systemConfiguredTitle": "Hệ thống đã được thiết lập",
+      "systemConfiguredDescription": "RentFlow chỉ hỗ trợ một tài khoản chủ trọ. Tài khoản đã được tạo trước đó — vui lòng đăng nhập.",
+      "goToLogin": "Đến trang đăng nhập",
+
+      "createAccountTitle": "Tạo tài khoản chủ trọ",
+      "createAccountDescription": "Đây sẽ là tài khoản quản trị duy nhất của hệ thống",
+
+      "fullName": "Họ và tên",
+      "email": "Email",
+      "password": "Mật khẩu",
+      "confirmPassword": "Xác nhận mật khẩu",
+
+      "emailPlaceholder": "ban@vidu.com",
+
+      "submit": "Tạo tài khoản & bắt đầu",
+
+      "alreadyHaveAccount": "Đã có tài khoản?",
+      "login": "Đăng nhập",
+
+      "registerSuccess": "Đã tạo tài khoản chủ trọ. Chào mừng đến với RentFlow!",
+      "registerFailed": "Không thể tạo tài khoản"
+    },
+    "login": {
+      "eyebrow": "Chào mừng trở lại",
+      "title": "Quản lý phòng trọ gọn gàng, minh bạch",
+      "subtitle": "Đăng nhập để tiếp tục theo dõi phòng, người thuê, hóa đơn và thanh toán.",
+      "heading": "Đăng nhập",
+      "description": "Nhập thông tin tài khoản chủ trọ của bạn",
+      "email": "Email",
+      "emailPlaceholder": "ban@vidu.com",
+      "password": "Mật khẩu",
+      "remember": "Ghi nhớ đăng nhập",
+      "submit": "Đăng nhập",
+      "firstTime": "Lần đầu sử dụng RentFlow?",
+      "setupAccount": "Thiết lập tài khoản chủ trọ",
+      "loginFailed": "Đăng nhập thất bại"
+    }
+  }
+}

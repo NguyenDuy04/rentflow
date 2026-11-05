@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": [],
+  "sections": [
+    {"offset": {"line": 100, "column": 0}, "map": {"version":3,"sources":["file:///home/duypinky/Development/rentflow/frontend/src/i18n/routing.ts"],"sourcesContent":["import { defineRouting } from \"next-intl/routing\";\n\nexport const routing = defineRouting({\n  locales: [\"vi\", \"en\"],\n  defaultLocale: \"vi\",\n});\n"],"names":["routing","locales","defaultLocale"],"mappings":";;;;AAAA;;AAEO,MAAMA,UAAU,IAAA,mPAAa,EAAC;IACnCC,SAAS;QAAC;QAAM;KAAK;IACrBC,eAAe;AACjB"}},
+    {"offset": {"line": 117, "column": 0}, "map": {"version":3,"sources":["file:///home/duypinky/Development/rentflow/frontend/src/proxy.ts"],"sourcesContent":["import createMiddleware from \"next-intl/middleware\";\nimport { routing } from \"@/i18n/routing\";\n\nexport default createMiddleware(routing);\n\nexport const config = {\n  matcher: [\"/((?!api|_next|.*\\\\..*).*)\"],\n};\n"],"names":["config","matcher"],"mappings":";;;;;;AAAA;AACA;;;uCAEe,IAAA,iMAAgB,EAAC,iIAAO;AAEhC,MAAMA,SAAS;IACpBC,SAAS;QAAC;KAA6B;AACzC"}}]
+}
