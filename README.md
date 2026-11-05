@@ -1,36 +1,114 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# RentFlow — Hệ thống quản lý phòng trọ
 
-## Getting Started
+MVP quản lý phòng trọ cho chủ nhà: phòng, người thuê, chỉ số điện nước, hóa đơn (kèm xuất PDF tiếng Việt có dấu) và thanh toán, cùng dashboard tổng **quan**.
 
-First, run the development server:
+**Backend:** FastAPI + MongoDB (Motor) + Pydantic v2 + JWT
+**Frontend:** Next.js 16 (App Router) + TypeScript + Tailwind + TanStack Query + React Hook Form + Zod
+**Database:** MongoDB (Atlas cho production, Docker cho local dev)
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+Toàn bộ code trong gói này đã được **build và test thật**: backend có 21 automated test (pytest) chạy qua toàn bộ luồng nghiệp vụ, frontend đã `tsc --noEmit` sạch và `next build` thành công cho cả 11 route.
+
+---
+
+## 1. Cấu trúc thư mục
+
+```
+rentflow/
+├── docker-compose.yml      # MongoDB local cho dev (tùy chọn)
+├── backend/
+│   ├── app/
+│   │   ├── main.py         # FastAPI app + CORS + router
+│   │   ├── core/           # config (env), JWT, bcrypt
+│   │   ├── db/             # kết nối MongoDB (Motor) + index
+│   │   ├── models/         # Pydantic models (Create/Update/Public) từng entity
+│   │   ├── api/routes/     # auth, rooms, tenants, meters, pricing, bills, payments, users, audit, issues, portal
+│   │   ├── services/       # billing.py (tính hóa đơn), pdf.py (xuất PDF tiếng Việt)
+│   │   └── assets/fonts/   # Noto Sans (Regular + Bold) — hỗ trợ đầy đủ dấu tiếng Việt trong PDF
+│   ├── scripts/seed.py     # tạo tài khoản chủ trọ đầu tiên
+│   ├── tests/              # 21 test (pytest) — auth, rooms, tenants, billing, payments, dashboard
+│   ├── requirements.txt
+│   └── .env
+└── frontend/
+    ├── app/                # Next.js App Router
+    |   ├── register/
+    │   ├── login/
+    │   └── (dashboard)/    # layout bảo vệ + dashboard, rooms, tenants, meters, billing, payments, settings
+    ├── components/
+    │   ├── ui/             # Button, Input, Dialog, Table, Tabs, DropdownMenu... (kiểu shadcn/ui)
+    │   ├── layout/         # Sidebar, Header, Providers (React Query + Toaster)
+    │   └── {rooms,tenants,meters,billing,payments,dashboard}/
+    ├── hooks/              # React Query hooks cho từng entity
+    ├── schemas/            # Zod validation
+    ├── types/              # TypeScript types khớp với response backend
+    ├── lib/                # api-client (fetch + JWT), auth (lưu token), utils
+    └── .env
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 2. Chạy local
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Yêu cầu
 
-## Learn More
+- Python 3.11+
+- Node.js 20+
+- Docker (nếu muốn chạy MongoDB local thay vì dùng Atlas ngay)
 
-To learn more about Next.js, take a look at the following resources:
+### Bước 1 — MongoDB
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Nếu dùng Docker
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- Mở
 
-## Deploy on Vercel
+```bash
+sudo docker compose up -d
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- Tắt
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+sudo docker compose down
+```
+
+Hoặc bỏ qua bước này và dùng thẳng connection string MongoDB Atlas ở bước 2.
+
+### Bước 2 — Backend
+
+```bash
+cd backend
+python3 -m venv venv && source venv/bin/activate
+pip install -r requirements.txt
+
+cp .env.example .env
+# Sửa MONGODB_URI trong .env nếu dùng Atlas thay vì Docker
+
+python scripts/seed.py        # tạo tài khoản chủ trọ đầu tiên
+uvicorn app.main:app --reload --port 8000
+```
+
+Backend chạy tại `http://localhost:8000`, tài liệu API tự động tại `http://localhost:8000/docs`.
+
+Tài khoản mặc định (đổi ngay sau khi đăng nhập lần đầu, hoặc set `SEED_ADMIN_EMAIL`/`SEED_ADMIN_PASSWORD` trong `.env` trước khi chạy seed):
+
+```
+Email: admin@rentflow.app
+Mật khẩu: ChangeMe123!
+```
+
+### Bước 3 — Frontend
+
+```bash
+cd frontend
+npm install   # NEXT_PUBLIC_API_URL=http://localhost:8000/api
+npm run dev
+```
+
+Mở `http://localhost:3000`.
+
+### Chạy test backend
+
+```bash
+cd backend
+pip install -r requirements-dev.txt
+PYTHONPATH=. pytest tests/ -v
+```
