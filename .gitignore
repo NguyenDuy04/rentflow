@@ -43,3 +43,6 @@ next-env.d.ts
 
 **/frontend/.next/
 .next/
+
+**/backend/
+venv
