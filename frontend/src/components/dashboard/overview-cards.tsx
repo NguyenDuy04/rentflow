@@ -6,7 +6,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useDashboardOverview } from "@/hooks/use-dashboard";
 import { formatCurrency } from "@/lib/utils";
 import { useLocale, useTranslations } from "next-intl";
-import { cn } from "@/lib/utils";
 
 export function OverviewCards() {
     const { data, isLoading } = useDashboardOverview();
@@ -48,26 +47,22 @@ export function OverviewCards() {
     return (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {items.map((item) => (
-                <Card key={item.label} className="gap-0 py-3">
-                    <CardContent className="flex items-start justify-between px-3">
-                        <div className="space-y-1 w-full">
-                            <div className="flex items-center gap-2 pb-1.5 cursor-default">
-                                <div className={cn(`flex h-7 w-7 shrink-0 items-center justify-center rounded-md`,
-                                    item.alert
-                                        ?
-                                        "bg-destructive/10 text-destructive"
-                                        :
-                                        "bg-secondary text-secondary-foreground")}>
-                                    <item.icon className="h-4.5 w-4.5" />
-                                </div>
-                                <p className="text-[16px] text-muted-foreground">{item.label}</p>
-                            </div>
+                <Card key={item.label}>
+                    <CardContent className="flex items-start justify-between p-5">
+                        <div className="space-y-1">
+                            <p className="text-sm text-muted-foreground">{item.label}</p>
                             {isLoading || item.value === undefined ? (
                                 <Skeleton className="h-7 w-24" />
                             ) : (
-                                <p className="text-[26px] font-semibold tracking-tight pb-1 pl-1">{item.value}</p>
+                                <p className="text-2xl font-semibold tracking-tight">{item.value}</p>
                             )}
-                            {item.sub && <p className="text-xs text-muted-foreground cursor-default">{item.sub}</p>}
+                            {item.sub && <p className="text-xs text-muted-foreground">{item.sub}</p>}
+                        </div>
+                        <div
+                            className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-md ${item.alert ? "bg-destructive/10 text-destructive" : "bg-secondary text-secondary-foreground"
+                                }`}
+                        >
+                            <item.icon className="h-4.5 w-4.5" />
                         </div>
                     </CardContent>
                 </Card>

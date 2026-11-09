@@ -22,8 +22,8 @@ export function Header() {
   return (
     <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-border bg-card/95 px-4 backdrop-blur supports-backdrop-filter:bg-card/80 sm:h-16 sm:px-6">
       <Link href={user?.role === "tenant" ? "/tenant" : "/dashboard"} className="flex items-center gap-2 lg:hidden">
-        <Image src="/logo/rentflow__logo.svg" alt="" width={30} height={30} className="rounded-md bg-white p-0.5" aria-hidden="true" />
-        <span className="text-[20px] sm:text-base font-semibold tracking-tight"> {t("brand")} </span>
+        <Image src="/logo/rentflow__logo.svg" alt="" width={28} height={28} className="rounded-md bg-white p-0.5" aria-hidden="true" />
+        <span className="text-base font-semibold tracking-tight"> {t("brand")} </span>
       </Link>
       <div className="ml-auto flex items-center gap-4">
         <ThemeToggle />
