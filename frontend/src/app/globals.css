@@ -54,37 +54,31 @@ button {
   cursor: pointer;
 }
 
-/* Custom Scrollbar - Premium Mint Theme */
-
-/* Dành cho Chrome, Safari, Edge */
 ::-webkit-scrollbar {
-  width: 10px; /* Độ rộng tổng thể */
+  width: 10px;
   height: 10px;
 }
 
 ::-webkit-scrollbar-track {
-  background: transparent; /* Để nền trong suốt giúp giao diện thoáng hơn */
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background-color: #a7f3d0; /* Mint nhạt mềm mại (emerald-200) */
+  background-color: #a7f3d0;
   border-radius: 9999px;
-  /* Kỹ thuật tạo khoảng trống giữa thanh trượt và mép màn hình */
   border: 3px solid transparent;
   background-clip: padding-box;
   transition: background-color 0.2s ease;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background-color: #34d399; /* Mint đậm nổi bật khi hover (emerald-400) */
+  background-color: #34d399;
 }
 
-/* Khi đang nhấn giữ kéo thanh trượt */
 ::-webkit-scrollbar-thumb:active {
-  background-color: #10b981; /* Mint tươi (emerald-500) */
+  background-color: #10b981;
 }
 
-/* Dành cho Firefox */
 * {
   scrollbar-width: thin;
   scrollbar-color: #a7f3d0 transparent;
