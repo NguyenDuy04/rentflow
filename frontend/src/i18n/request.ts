@@ -8,12 +8,13 @@ export default getRequestConfig(async ({ requestLocale }) => {
     locale = routing.defaultLocale;
   }
 
-  const [common] = await Promise.all([
+  const [common, management] = await Promise.all([
     import(`@/messages/${locale}/common.json`).then((m) => m.default),
+    import(`@/messages/${locale}/management.json`).then((m) => m.default),
   ]);
 
   return {
     locale: locale as string,
-    messages: { ...common },
+    messages: { ...common, ...management },
   };
 });
