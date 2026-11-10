@@ -9,6 +9,8 @@ import { cn } from "@/lib/utils";
 import { routing } from "@/i18n/routing";
 import { ThemeProvider } from "@/providers/theme-provider";
 import { Providers } from "@/components/layout/providers";
+import { PageTransition } from "@/components/layout/page-transition";
+
 
 const inter = Inter({
     subsets: ["latin", "latin-ext"],
@@ -55,7 +57,11 @@ export default async function LocaleLayout({
             <body className={cn('h-full', inter.className, inter.variable)}>
                 <ThemeProvider>
                     <NextIntlClientProvider messages={messages}>
-                        <Providers>{children}</Providers>
+                        <Providers>
+                            <PageTransition>
+                                {children}
+                            </PageTransition>
+                        </Providers>
                     </NextIntlClientProvider>
                 </ThemeProvider>
             </body>
